@@ -1,0 +1,5 @@
+{
+  "name": "PromptArchitect",
+  "description": "A professional-grade prompt engineering IDE for managing, optimizing, and executing LLM prompts using the Gemini API.",
+  "requestFramePermissions": []
+}
