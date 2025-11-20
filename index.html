@@ -10,37 +10,72 @@
         theme: {
           extend: {
             colors: {
-              slate: {
-                850: '#172033',
-                900: '#0f172a',
-                950: '#020617',
+              // Deep Void Base
+              background: '#050505',
+              surface: '#09090b', // Zinc 950
+              surfaceHighlight: '#18181b', // Zinc 900
+              
+              // Neon Accents
+              primary: {
+                DEFAULT: '#06b6d4', // Cyan 500
+                glow: '#06b6d4',
+                dim: 'rgba(6, 182, 212, 0.1)'
               },
-              indigo: {
-                550: '#4f46e5', // Custom accent
+              secondary: {
+                DEFAULT: '#8b5cf6', // Violet 500
+                glow: '#8b5cf6'
               }
             },
             fontFamily: {
               mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
+              sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'glow': 'glow 2s ease-in-out infinite alternate',
+            },
+            keyframes: {
+              glow: {
+                '0%': { boxShadow: '0 0 5px rgba(6, 182, 212, 0.2)' },
+                '100%': { boxShadow: '0 0 20px rgba(6, 182, 212, 0.6), 0 0 10px rgba(6, 182, 212, 0.4)' },
+              }
             }
           },
         },
       }
     </script>
     <style>
-      /* Custom Scrollbar for Webkit */
+      /* Custom Scrollbar for Cyber Theme */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #0f172a; 
+        background: #050505; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #334155; 
-        border-radius: 4px;
+        background: #27272a; 
+        border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #475569; 
+        background: #06b6d4; 
+      }
+
+      /* Cyber Grid Background */
+      body {
+        background-color: #050505;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      
+      /* Utility for hiding scrollbar but keeping functionality */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
     </style>
   <script type="importmap">
@@ -56,7 +91,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-950 text-slate-200 h-screen overflow-hidden">
+  <body class="bg-[#050505] text-zinc-300 h-screen overflow-hidden antialiased">
     <div id="root" class="h-full w-full"></div>
   </body>
 </html>

@@ -23,8 +23,6 @@ const EditorView: React.FC<EditorViewProps> = ({ initialPrompt, onSave, onCancel
   const [isSaving, setIsSaving] = useState(false);
   const [viewMode, setViewMode] = useState<'design' | 'source'>('design');
   
-  // Store variable configuration (default value AND type)
-  // Key: variableName, Value: { defaultValue, type }
   const [variableConfig, setVariableConfig] = useState<Record<string, { defaultValue: string, type: 'text' | 'file' | 'selection' | 'stdin' }>>({});
 
   useEffect(() => {
@@ -40,7 +38,6 @@ const EditorView: React.FC<EditorViewProps> = ({ initialPrompt, onSave, onCancel
     }
   }, [initialPrompt]);
 
-  // Auto-extract variables and merge with current config
   const variables: Variable[] = React.useMemo(() => {
     const regex = /\{\{([^}]+)\}\}/g;
     const matches = [...template.matchAll(regex)];
@@ -71,10 +68,8 @@ const EditorView: React.FC<EditorViewProps> = ({ initialPrompt, onSave, onCancel
     
     setIsSaving(true);
 
-    // FR-03: Generate Vector Index on Save
     let embedding: number[] | undefined;
     if (process.env.API_KEY) {
-      // Embed Name + Description + Tags
       const textToEmbed = `${name} ${description} ${tags}`;
       embedding = await generateEmbedding(textToEmbed);
     }
@@ -103,7 +98,6 @@ const EditorView: React.FC<EditorViewProps> = ({ initialPrompt, onSave, onCancel
     onSave();
   };
 
-  // FR-02: Generate YAML Frontmatter for Source View
   const generateSourceCode = () => {
     const frontmatter = [
       '---',
@@ -126,209 +120,194 @@ const EditorView: React.FC<EditorViewProps> = ({ initialPrompt, onSave, onCancel
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 overflow-y-auto">
-      {/* Header */}
-      <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-900 sticky top-0 z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="flex flex-col h-full bg-transparent overflow-y-auto">
+      {/* Control Panel Header */}
+      <div className="p-4 md:p-6 border-b border-white/10 bg-black/40 backdrop-blur-md sticky top-0 z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4 w-full md:w-auto">
-          <button onClick={onCancel} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors">
+          <button onClick={onCancel} className="p-2 hover:bg-white/5 rounded-full text-zinc-400 hover:text-white transition-colors">
             <ArrowLeft size={20} />
           </button>
           <div className="truncate">
-            <h1 className="text-lg md:text-xl font-bold text-white truncate">
-              {initialPrompt ? 'Edit Prompt' : 'New Prompt'}
+            <h1 className="text-lg md:text-xl font-bold text-white truncate tracking-tight">
+              {initialPrompt ? 'Edit Protocol' : 'Initialize Protocol'}
             </h1>
-            <p className="text-xs text-slate-400 font-mono mt-1 truncate">
-              {initialPrompt ? initialPrompt.id : 'Unsaved Draft'}
+            <p className="text-xs text-cyan-500 font-mono mt-1 truncate flex items-center gap-2">
+              <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+              ID: {initialPrompt ? initialPrompt.id : 'DRAFT_MODE'}
             </p>
           </div>
         </div>
         
         <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-          <div className="bg-slate-800 p-1 rounded-lg flex text-xs font-medium">
+          <div className="bg-zinc-900/80 p-1 rounded-lg flex text-xs font-medium border border-white/5">
              <button 
                 onClick={() => setViewMode('design')}
-                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all ${viewMode === 'design' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all font-mono ${viewMode === 'design' ? 'bg-zinc-800 text-white shadow-inner border border-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}
              >
-               <Eye size={14} /> <span className="hidden sm:inline">Design</span>
+               <Eye size={14} /> <span className="hidden sm:inline">GUI</span>
              </button>
              <button 
                 onClick={() => setViewMode('source')}
-                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all ${viewMode === 'source' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all font-mono ${viewMode === 'source' ? 'bg-zinc-800 text-white shadow-inner border border-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}
              >
-               <Code size={14} /> <span className="hidden sm:inline">Source</span>
+               <Code size={14} /> <span className="hidden sm:inline">YAML</span>
              </button>
           </div>
 
-          <div className="h-6 w-px bg-slate-700 mx-2 hidden md:block"></div>
+          <div className="h-6 w-px bg-white/10 mx-2 hidden md:block"></div>
 
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 md:px-6 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 text-sm md:text-base"
+            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 md:px-6 py-2 rounded-lg font-medium transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] disabled:opacity-50 text-sm md:text-base hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] border border-cyan-400/50"
           >
             {isSaving ? <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin"/> : <Save size={18} />}
-            {isSaving ? 'Indexing...' : 'Save'}
+            {isSaving ? 'ENCODING...' : 'SAVE'}
           </button>
         </div>
       </div>
 
       {viewMode === 'design' ? (
-        <div className="p-4 md:p-8 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 pb-20 md:pb-8">
-          {/* Left Column: Metadata */}
+        <div className="p-4 md:p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 pb-20 md:pb-8">
+          {/* Left Column: Configuration */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Metadata</h3>
+            <div className="space-y-4 p-5 bg-zinc-900/30 border border-white/5 rounded-xl backdrop-blur-sm">
+              <h3 className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest flex items-center gap-2 font-mono mb-4">
+                <Settings2 size={12} /> Meta_Data
+              </h3>
               
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Name</label>
+                <label className="block text-xs text-zinc-400 mb-1 font-mono uppercase">Name</label>
                 <input 
                   type="text" 
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-slate-200"
+                  className="w-full bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 outline-none text-zinc-200 transition-all placeholder-zinc-600 font-sans"
                   placeholder="e.g., React Component Generator"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Description</label>
+                <label className="block text-xs text-zinc-400 mb-1 font-mono uppercase">Description</label>
                 <textarea 
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-slate-200 h-24 resize-none"
-                  placeholder="What does this prompt do?"
+                  className="w-full bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 outline-none text-zinc-200 h-24 resize-none transition-all placeholder-zinc-600"
+                  placeholder="Define the purpose of this protocol..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Tags</label>
+                <label className="block text-xs text-zinc-400 mb-1 font-mono uppercase">Tags</label>
                 <input 
                   type="text" 
                   value={tags}
                   onChange={e => setTags(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-slate-200"
+                  className="w-full bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 outline-none text-zinc-200 transition-all placeholder-zinc-600"
                   placeholder="coding, react, frontend"
                 />
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-800 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Cpu size={14} /> Model & Strategy
+            <div className="p-5 bg-zinc-900/30 border border-white/5 rounded-xl backdrop-blur-sm space-y-4">
+              <h3 className="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-2 font-mono">
+                <Cpu size={12} /> Processing_Unit
               </h3>
 
-              {/* Model Selection SRS 10 */}
+              {/* Model Selection */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'fast', label: 'Fast', icon: Zap, desc: 'Flash 2.5' },
-                  { id: 'smart', label: 'Smart', icon: BrainCircuit, desc: 'Pro 3.0' },
-                  { id: 'reasoning', label: 'Reason', icon: Sparkles, desc: 'Thinking' },
+                  { id: 'fast', label: 'FAST', icon: Zap, desc: 'Flash 2.5' },
+                  { id: 'smart', label: 'SMART', icon: BrainCircuit, desc: 'Pro 3.0' },
+                  { id: 'reasoning', label: 'LOGIC', icon: Sparkles, desc: 'Thinking' },
                 ].map(m => (
                   <div 
                     key={m.id}
                     onClick={() => setModelMode(m.id as ModelMode)}
-                    className={`cursor-pointer rounded-lg p-2 border text-center transition-all ${
+                    className={`cursor-pointer rounded-lg p-2 border text-center transition-all group relative overflow-hidden ${
                       modelMode === m.id 
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white' 
-                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-600'
+                        ? 'bg-violet-500/10 border-violet-500/50 text-violet-300 shadow-[0_0_10px_rgba(139,92,246,0.2)]' 
+                        : 'bg-black/40 border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-400'
                     }`}
                   >
-                    <m.icon size={16} className="mx-auto mb-1" />
-                    <div className="text-xs font-bold">{m.label}</div>
-                    <div className="text-[10px] opacity-60">{m.desc}</div>
+                    <m.icon size={16} className={`mx-auto mb-1 ${modelMode === m.id ? 'text-violet-400' : 'text-zinc-500'}`} />
+                    <div className="text-[10px] font-bold font-mono">{m.label}</div>
                   </div>
                 ))}
               </div>
               
-              <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-800 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={stepBack}
-                  onChange={e => { setStepBack(e.target.checked); if(e.target.checked) setCod(false); }}
-                  className="mt-1"
-                />
-                <div>
-                  <span className="block text-sm font-medium text-slate-200">Step-Back Prompting</span>
-                  <span className="text-xs text-slate-500">Abstracts details to principles. Best for complex reasoning.</span>
-                </div>
-              </label>
+              <div className="space-y-2 mt-4">
+                <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${stepBack ? 'bg-orange-500/10 border-orange-500/40' : 'bg-black/40 border-zinc-800 hover:border-zinc-700'}`}>
+                    <input 
+                    type="checkbox" 
+                    checked={stepBack}
+                    onChange={e => { setStepBack(e.target.checked); if(e.target.checked) setCod(false); }}
+                    className="mt-1 accent-orange-500"
+                    />
+                    <div>
+                    <span className={`block text-xs font-bold uppercase tracking-wider ${stepBack ? 'text-orange-400' : 'text-zinc-400'}`}>Step-Back Abstraction</span>
+                    <span className="text-[10px] text-zinc-500">High-level reasoning pass.</span>
+                    </div>
+                </label>
 
-              <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-800 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={cod}
-                  onChange={e => { setCod(e.target.checked); if(e.target.checked) setStepBack(false); }}
-                  className="mt-1"
-                />
-                <div>
-                  <span className="block text-sm font-medium text-slate-200">Chain of Density</span>
-                  <span className="text-xs text-slate-500">Iterative recursion. Best for dense summaries.</span>
-                </div>
-              </label>
+                <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${cod ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-black/40 border-zinc-800 hover:border-zinc-700'}`}>
+                    <input 
+                    type="checkbox" 
+                    checked={cod}
+                    onChange={e => { setCod(e.target.checked); if(e.target.checked) setStepBack(false); }}
+                    className="mt-1 accent-emerald-500"
+                    />
+                    <div>
+                    <span className={`block text-xs font-bold uppercase tracking-wider ${cod ? 'text-emerald-400' : 'text-zinc-400'}`}>Chain of Density</span>
+                    <span className="text-[10px] text-zinc-500">Recursive refinement loop.</span>
+                    </div>
+                </label>
+              </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Settings2 size={14} /> Variable Configuration
+            <div className="p-5 bg-zinc-900/30 border border-white/5 rounded-xl backdrop-blur-sm">
+              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2 font-mono">
+                <Settings2 size={12} /> Variables
               </h3>
               <div className="space-y-3">
                 {variables.length > 0 ? variables.map(v => (
-                  <div key={v.name} className="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                  <div key={v.name} className="bg-black/40 p-3 rounded-lg border border-white/5 group hover:border-cyan-500/20 transition-colors">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="px-2 py-0.5 bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 text-xs rounded font-mono truncate max-w-full">
-                          {'{{' + v.name + '}}'}
+                        <span className="px-2 py-0.5 bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-[10px] rounded font-mono truncate max-w-full tracking-tight">
+                          {v.name}
                         </span>
                       </div>
                       
-                      <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar">
-                        <button 
-                          onClick={() => handleConfigChange(v.name, 'type', 'text')}
-                          className={`flex-1 min-w-[40px] flex items-center justify-center gap-1 py-1 rounded text-[10px] border ${
-                            v.type === 'text' ? 'bg-slate-800 border-indigo-500 text-white' : 'border-slate-700 text-slate-500 hover:bg-slate-800'
-                          }`}
-                          title="Plain Text"
-                        >
-                          <Type size={10} /> Txt
-                        </button>
-                        <button 
-                          onClick={() => handleConfigChange(v.name, 'type', 'file')}
-                          className={`flex-1 min-w-[40px] flex items-center justify-center gap-1 py-1 rounded text-[10px] border ${
-                            v.type === 'file' ? 'bg-slate-800 border-indigo-500 text-white' : 'border-slate-700 text-slate-500 hover:bg-slate-800'
-                          }`}
-                          title="File Content"
-                        >
-                          <FileText size={10} /> File
-                        </button>
-                        <button 
-                          onClick={() => handleConfigChange(v.name, 'type', 'selection')}
-                          className={`flex-1 min-w-[40px] flex items-center justify-center gap-1 py-1 rounded text-[10px] border ${
-                            v.type === 'selection' ? 'bg-slate-800 border-indigo-500 text-white' : 'border-slate-700 text-slate-500 hover:bg-slate-800'
-                          }`}
-                          title="Clipboard Selection"
-                        >
-                          <MousePointerClick size={10} /> Sel
-                        </button>
-                        <button 
-                          onClick={() => handleConfigChange(v.name, 'type', 'stdin')}
-                          className={`flex-1 min-w-[40px] flex items-center justify-center gap-1 py-1 rounded text-[10px] border ${
-                            v.type === 'stdin' ? 'bg-slate-800 border-indigo-500 text-white' : 'border-slate-700 text-slate-500 hover:bg-slate-800'
-                          }`}
-                          title="Standard Input / Logs"
-                        >
-                          <Terminal size={10} /> Std
-                        </button>
+                      <div className="flex gap-1 mb-2 overflow-x-auto no-scrollbar p-0.5 bg-black/40 rounded border border-white/5">
+                        {[
+                            { id: 'text', icon: Type, label: 'TXT' },
+                            { id: 'file', icon: FileText, label: 'FILE' },
+                            { id: 'selection', icon: MousePointerClick, label: 'SEL' },
+                            { id: 'stdin', icon: Terminal, label: 'STD' }
+                        ].map((type) => (
+                            <button 
+                            key={type.id}
+                            onClick={() => handleConfigChange(v.name, 'type', type.id)}
+                            className={`flex-1 min-w-[30px] flex items-center justify-center gap-1 py-1 rounded text-[9px] font-bold font-mono transition-all ${
+                                v.type === type.id ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-400'
+                            }`}
+                            title={type.label}
+                            >
+                            <type.icon size={10} /> {type.label}
+                            </button>
+                        ))}
                       </div>
 
                       <input 
                         type="text" 
                         placeholder="Default value..."
-                        className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-300 focus:border-indigo-500 outline-none"
+                        className="w-full bg-transparent border-b border-zinc-800 py-1 text-xs text-zinc-300 focus:border-cyan-500 outline-none placeholder-zinc-600 font-mono"
                         value={v.defaultValue || ''}
                         onChange={(e) => handleConfigChange(v.name, 'defaultValue', e.target.value)}
                       />
                   </div>
                 )) : (
-                  <span className="text-slate-600 text-xs italic">Type {'{{variable_name}}'} in the template to create variables.</span>
+                  <span className="text-zinc-600 text-xs italic font-mono">No variables detected.</span>
                 )}
               </div>
             </div>
@@ -336,37 +315,38 @@ const EditorView: React.FC<EditorViewProps> = ({ initialPrompt, onSave, onCancel
 
           {/* Right Column: Template Editor */}
           <div className="lg:col-span-2 flex flex-col h-full">
-            <label className="block text-sm text-slate-300 mb-2 flex justify-between">
-              <span>Prompt Template</span>
-              <span className="flex items-center gap-1 text-xs text-slate-500"><HelpCircle size={12}/> Markdown Supported</span>
+            <label className="block text-xs text-cyan-500 font-mono uppercase tracking-widest mb-2 flex justify-between items-end">
+              <span>Template_Body</span>
+              <span className="flex items-center gap-1 text-[10px] text-zinc-500 border border-zinc-800 px-2 py-0.5 rounded-full"><HelpCircle size={10}/> Markdown Enabled</span>
             </label>
-            <div className="flex-1 relative min-h-[400px]">
+            <div className="flex-1 relative min-h-[400px] group">
+              <div className="absolute inset-0 bg-cyan-500/5 blur-2xl rounded-full opacity-0 group-focus-within:opacity-20 transition-opacity pointer-events-none"></div>
               <textarea 
                 value={template}
                 onChange={e => setTemplate(e.target.value)}
-                className="w-full h-full min-h-[400px] md:min-h-[600px] bg-slate-900 border border-slate-700 rounded-xl p-4 md:p-6 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-slate-200 font-mono text-sm leading-relaxed resize-none"
-                placeholder="You are an expert assistant. Help me with {{topic}}..."
+                className="w-full h-full min-h-[400px] md:min-h-[600px] bg-[#08080a] border border-white/10 rounded-xl p-6 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none text-zinc-300 font-mono text-sm leading-relaxed resize-none shadow-inner transition-all placeholder-zinc-600"
+                placeholder="// Define your prompt protocol here...&#10;User: {{input}}&#10;Assistant: ..."
                 spellCheck={false}
               />
             </div>
           </div>
         </div>
       ) : (
-        // Source View (FR-02)
-        <div className="p-4 md:p-8 max-w-6xl mx-auto w-full h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 pb-20 md:pb-8">
+        // Source View
+        <div className="p-4 md:p-8 max-w-7xl mx-auto w-full h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 pb-20 md:pb-8">
            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-2">
-             <p className="text-slate-400 text-sm">
-               This YAML format adheres to the <strong>PromptArchitect CLI Schema</strong> (SRS 10).
+             <p className="text-zinc-500 text-sm font-mono">
+               <span className="text-cyan-500">&gt;</span> VIEWING_SOURCE_CODE
              </p>
              <button 
                onClick={() => navigator.clipboard.writeText(generateSourceCode())}
-               className="text-xs flex items-center gap-1 text-indigo-400 hover:text-white"
+               className="text-xs flex items-center gap-1 text-cyan-400 hover:text-white font-mono uppercase tracking-wider bg-cyan-950/30 px-3 py-1 rounded border border-cyan-500/20 hover:border-cyan-500/50 transition-colors"
              >
-               <FileText size={12} /> Copy to Clipboard
+               <FileText size={12} /> Copy Buffer
              </button>
            </div>
-           <div className="flex-1 bg-slate-900 rounded-xl border border-slate-700 p-4 md:p-6 overflow-auto relative min-h-[400px]">
-             <pre className="font-mono text-xs md:text-sm text-slate-300 whitespace-pre-wrap">
+           <div className="flex-1 bg-[#08080a] rounded-xl border border-white/10 p-6 overflow-auto relative min-h-[400px] shadow-inner">
+             <pre className="font-mono text-xs md:text-sm text-emerald-400 whitespace-pre-wrap leading-relaxed">
                {generateSourceCode()}
              </pre>
            </div>

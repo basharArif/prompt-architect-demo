@@ -24,7 +24,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onSelectPrompt, onEditPrompt,
     loadPrompts();
   }, [loadPrompts]);
 
-  // Hybrid Search Debounce
   useEffect(() => {
     const handler = setTimeout(async () => {
       if (!searchTerm) {
@@ -34,8 +33,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onSelectPrompt, onEditPrompt,
 
       setIsSearching(true);
       let embedding: number[] | undefined;
-      
-      // Only generate embedding if API key exists (FR-04)
       if (process.env.API_KEY) {
         embedding = await generateEmbedding(searchTerm);
       }
@@ -56,7 +53,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onSelectPrompt, onEditPrompt,
     }
   };
 
-  // Extract unique tags
   const uniqueTags = useMemo(() => {
     const allTags = new Set<string>();
     storageService.getAll().forEach(p => p.tags.forEach(t => allTags.add(t)));
@@ -69,47 +65,47 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onSelectPrompt, onEditPrompt,
   }, [prompts, selectedTag]);
 
   return (
-    <div className="flex flex-col h-full bg-slate-950">
-      {/* Header */}
-      <div className="p-4 md:p-8 pb-6 bg-slate-950 sticky top-0 z-10 border-b border-slate-900/50">
-        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Prompt Library</h1>
-        <p className="text-slate-400 mb-6 text-sm md:text-base">Manage and organize your engineering prompts.</p>
+    <div className="flex flex-col h-full bg-transparent">
+      {/* Header - Glass Effect */}
+      <div className="p-4 md:p-8 pb-6 bg-black/20 backdrop-blur-sm sticky top-0 z-10 border-b border-white/5">
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight font-sans">Prompt<span className="text-cyan-400">Architect</span></h1>
+        <p className="text-zinc-400 mb-6 text-sm md:text-base font-light">Manage and organize your engineering prompts.</p>
         
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1 max-w-2xl">
-            <Search className="absolute left-4 top-3.5 text-slate-500" size={20} />
+          <div className="relative flex-1 max-w-2xl group">
+            <Search className="absolute left-4 top-3.5 text-zinc-500 group-focus-within:text-cyan-500 transition-colors" size={20} />
             <input 
               type="text"
-              placeholder="Search..."
-              className="w-full bg-slate-900 border border-slate-800 text-slate-200 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+              placeholder="Search neural index..."
+              className="w-full bg-zinc-900/50 border border-white/10 text-zinc-200 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:bg-zinc-900 transition-all placeholder-zinc-600 font-mono text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {isSearching && (
-              <div className="absolute right-4 top-3.5 text-indigo-400 animate-pulse">
+              <div className="absolute right-4 top-3.5 text-cyan-400 animate-pulse">
                 <Sparkles size={20} />
               </div>
             )}
           </div>
         </div>
 
-        {/* Tag Filter Bar */}
+        {/* Tag Filter Bar - Neon Pills */}
         {uniqueTags.length > 0 && (
           <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar fade-in slide-in-from-left-2 animate-in duration-300">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-2 shrink-0">Filters:</span>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mr-2 shrink-0 font-mono">Signal Filter:</span>
             {uniqueTags.map(tag => (
               <button
                 key={tag}
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                className={`flex items-center px-3 py-1.5 rounded-full text-xs border transition-all whitespace-nowrap shrink-0 ${
+                className={`flex items-center px-3 py-1 rounded-md text-xs border transition-all whitespace-nowrap shrink-0 font-mono ${
                   selectedTag === tag
-                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                    ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                    : 'bg-zinc-900/50 border-white/5 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'
                 }`}
               >
-                <Hash size={10} className="mr-1.5" />
+                <Hash size={10} className="mr-1.5 opacity-50" />
                 {tag}
-                {selectedTag === tag && <X size={10} className="ml-1.5" />}
+                {selectedTag === tag && <X size={10} className="ml-1.5 text-cyan-400" />}
               </button>
             ))}
           </div>
@@ -122,69 +118,72 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onSelectPrompt, onEditPrompt,
           {filteredPrompts.map(prompt => (
             <div 
               key={prompt.id}
-              className="group bg-slate-900/50 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900 rounded-2xl p-5 transition-all duration-200 flex flex-col cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md hover:shadow-indigo-900/10 active:scale-[0.99]"
+              className="group bg-[#0a0a0c]/80 border border-white/5 hover:border-cyan-500/30 rounded-xl p-5 transition-all duration-300 flex flex-col cursor-pointer relative overflow-hidden shadow-lg shadow-black/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.1)]"
               onClick={() => onSelectPrompt(prompt)}
             >
+              {/* Hover Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
               {/* Model Badge */}
               {prompt.modelPreference && prompt.modelPreference.mode !== 'fast' && (
-                 <div className="absolute top-0 right-0 p-2">
-                    <span className="text-[10px] uppercase font-bold text-indigo-300 bg-indigo-900/40 px-2 py-1 rounded-bl-lg border-l border-b border-indigo-500/20">
+                 <div className="absolute top-0 right-0">
+                    <div className="text-[9px] uppercase font-bold font-mono text-cyan-300 bg-cyan-950/50 px-2 py-1 rounded-bl-lg border-l border-b border-cyan-500/20 backdrop-blur-sm">
                       {prompt.modelPreference.mode}
-                    </span>
+                    </div>
                  </div>
               )}
 
-              <div className="flex justify-between items-start mb-3 pr-8">
-                <h3 className="text-lg font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors">
+              <div className="flex justify-between items-start mb-3 pr-8 relative z-10">
+                <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors tracking-tight">
                   {prompt.name}
                 </h3>
               </div>
               
-              <p className="text-slate-400 text-sm mb-4 line-clamp-2 flex-grow">
+              <p className="text-zinc-400 text-sm mb-4 line-clamp-2 flex-grow font-light leading-relaxed">
                 {prompt.description}
               </p>
 
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <div className="flex items-center gap-2 mb-4 flex-wrap relative z-10">
                 {prompt.tags.map(tag => (
-                  <span key={tag} className="flex items-center text-xs px-2 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-                    <Hash size={10} className="mr-1" /> {tag}
+                  <span key={tag} className="flex items-center text-[10px] font-mono px-1.5 py-0.5 rounded border bg-zinc-900 border-zinc-800 text-zinc-400 group-hover:border-cyan-900/50 group-hover:text-cyan-200/70 transition-colors">
+                    <Hash size={8} className="mr-1 opacity-50" /> {tag}
                   </span>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800 text-xs text-slate-500 mt-auto">
-                <div className="flex items-center gap-2">
-                   {prompt.algorithms.stepBack && <span className="text-orange-400 flex items-center gap-1 font-bold" title="Step-Back Reasoning Active"><Sparkles size={10} /> Step-Back</span>}
-                   {prompt.algorithms.chainOfDensity && <span className="text-emerald-400 flex items-center gap-1 font-bold" title="Chain of Density Active"><Sparkles size={10} /> CoD</span>}
+              <div className="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-zinc-500 mt-auto relative z-10 font-mono">
+                <div className="flex items-center gap-3">
+                   {prompt.algorithms.stepBack && <span className="text-orange-400 flex items-center gap-1 font-bold drop-shadow-[0_0_5px_rgba(251,146,60,0.3)]" title="Step-Back Reasoning Active"><Sparkles size={10} /> BACK</span>}
+                   {prompt.algorithms.chainOfDensity && <span className="text-emerald-400 flex items-center gap-1 font-bold drop-shadow-[0_0_5px_rgba(52,211,153,0.3)]" title="Chain of Density Active"><Sparkles size={10} /> DENSE</span>}
                 </div>
-                <span className="flex items-center">
-                  <Clock size={12} className="mr-1" />
+                <span className="flex items-center opacity-70">
+                  <Clock size={10} className="mr-1" />
                   {new Date(prompt.lastModified).toLocaleDateString()}
                 </span>
               </div>
 
-              {/* Actions Overlay - Always visible on mobile/touch, hover on desktop */}
-              <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/90 p-1.5 rounded-lg backdrop-blur-sm border border-slate-700 shadow-xl">
+              {/* Actions Overlay */}
+              <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                   <button 
                     onClick={(e) => { e.stopPropagation(); onEditPrompt(prompt); }}
-                    className="p-2 hover:bg-slate-700 rounded-md text-slate-300 hover:text-white transition-colors"
+                    className="p-2 bg-zinc-900 border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 rounded-lg text-zinc-400 transition-all shadow-lg"
                     title="Edit"
                   >
-                    <Edit3 size={16} />
+                    <Edit3 size={14} />
                   </button>
                   <button 
                     onClick={(e) => handleDelete(prompt.id, e)}
-                    className="p-2 hover:bg-red-900/50 rounded-md text-slate-300 hover:text-red-400 transition-colors"
+                    className="p-2 bg-zinc-900 border border-zinc-700 hover:border-red-500 hover:text-red-400 rounded-lg text-zinc-400 transition-all shadow-lg"
                     title="Delete"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); onRunPrompt(prompt); }}
-                    className="p-2 bg-indigo-600 hover:bg-indigo-500 rounded-md text-white shadow-lg transition-colors"
+                    className="p-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all border border-cyan-400"
                     title="Run"
                   >
-                    <Play size={16} />
+                    <Play size={14} fill="currentColor" />
                   </button>
               </div>
             </div>
@@ -192,10 +191,12 @@ const LibraryView: React.FC<LibraryViewProps> = ({ onSelectPrompt, onEditPrompt,
         </div>
         
         {filteredPrompts.length === 0 && !isSearching && (
-          <div className="flex flex-col items-center justify-center text-slate-500 mt-20">
-            <Search size={48} className="opacity-20 mb-4" />
-            <p>No prompts found.</p>
-            {selectedTag && <button onClick={() => setSelectedTag(null)} className="text-indigo-400 text-sm mt-2 hover:underline">Clear Filters</button>}
+          <div className="flex flex-col items-center justify-center text-zinc-600 mt-20 font-mono text-sm">
+            <div className="w-16 h-16 border border-zinc-800 rounded-full flex items-center justify-center mb-4 bg-zinc-900/50">
+                <Search size={24} className="opacity-50" />
+            </div>
+            <p className="tracking-wider">NO_DATA_FOUND</p>
+            {selectedTag && <button onClick={() => setSelectedTag(null)} className="text-cyan-500 text-xs mt-2 hover:underline">[CLEAR_FILTERS]</button>}
           </div>
         )}
       </div>

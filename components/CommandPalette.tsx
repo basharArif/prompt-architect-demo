@@ -28,8 +28,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onSele
     if (!query) {
       setResults(storageService.getAll().slice(0, 5));
     } else {
-      // Sync search for speed in command palette, avoiding async embedding for UI snappiness
-      // We use the non-embedding search here for "Quick Pick" speed (NFR-01)
       const all = storageService.getAll();
       const lowerQ = query.toLowerCase();
       const filtered = all.filter(p => 
@@ -62,38 +60,40 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onSele
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100"
+        className="w-full max-w-2xl bg-black/80 border border-cyan-500/30 rounded-xl shadow-[0_0_50px_rgba(6,182,212,0.15)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center px-4 border-b border-slate-800">
-          <Search className="text-slate-400" size={20} />
+        <div className="flex items-center px-4 border-b border-white/10 bg-white/5">
+          <Search className="text-cyan-500" size={20} />
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 bg-transparent border-none outline-none text-lg text-white px-4 py-4 placeholder-slate-500"
-            placeholder="Search prompts..."
+            className="flex-1 bg-transparent border-none outline-none text-lg text-white px-4 py-4 placeholder-zinc-500 font-mono"
+            placeholder="INITIATE_SEARCH_PROTOCOL..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
           />
           <div className="hidden sm:flex items-center gap-1">
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">ESC</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-500 border border-zinc-800">ESC</span>
           </div>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto py-2">
           {results.length === 0 ? (
-             <div className="px-4 py-8 text-center text-slate-500">
-               No results found.
+             <div className="px-4 py-8 text-center text-zinc-500 font-mono text-xs">
+               [NO_MATCHES_FOUND]
              </div>
           ) : (
             results.map((prompt, index) => (
               <div
                 key={prompt.id}
-                className={`px-4 py-3 mx-2 rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
-                  index === selectedIndex ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                className={`px-4 py-3 mx-2 rounded-lg flex items-center justify-between cursor-pointer transition-all border ${
+                  index === selectedIndex 
+                    ? 'bg-cyan-950/30 border-cyan-500/30 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
+                    : 'border-transparent text-zinc-400 hover:bg-white/5'
                 }`}
                 onClick={() => {
                   onSelect(prompt);
@@ -102,12 +102,12 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onSele
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className={`p-2 rounded-md ${index === selectedIndex ? 'bg-indigo-500' : 'bg-slate-800'}`}>
+                  <div className={`p-2 rounded-md transition-colors ${index === selectedIndex ? 'bg-cyan-500 text-black' : 'bg-zinc-900 text-zinc-600'}`}>
                     <Command size={16} />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-medium truncate">{prompt.name}</span>
-                    <div className={`flex items-center gap-2 text-xs ${index === selectedIndex ? 'text-indigo-200' : 'text-slate-500'}`}>
+                    <span className="font-medium truncate font-mono tracking-tight">{prompt.name}</span>
+                    <div className={`flex items-center gap-2 text-[10px] uppercase tracking-wider ${index === selectedIndex ? 'text-cyan-300' : 'text-zinc-600'}`}>
                       {prompt.modelPreference && (
                         <span className="flex items-center gap-0.5"><Zap size={10} /> {prompt.modelPreference.mode}</span>
                       )}
@@ -119,16 +119,16 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onSele
                 </div>
                 
                 {index === selectedIndex && (
-                  <ArrowRight size={16} className="animate-pulse" />
+                  <ArrowRight size={16} className="text-cyan-400 animate-pulse" />
                 )}
               </div>
             ))
           )}
         </div>
         
-        <div className="bg-slate-950 px-4 py-2 border-t border-slate-800 text-xs text-slate-500 flex justify-between">
-           <span><strong>↑↓</strong> to navigate</span>
-           <span><strong>Enter</strong> to select</span>
+        <div className="bg-black/50 px-4 py-2 border-t border-white/5 text-[10px] text-zinc-600 flex justify-between font-mono uppercase">
+           <span><strong>↑↓</strong> NAVIGATE</span>
+           <span><strong>ENTER</strong> ENGAGE</span>
         </div>
       </div>
     </div>

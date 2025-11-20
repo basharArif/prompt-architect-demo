@@ -12,14 +12,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSettings, setShowSettings] = React.useState(false);
 
-  // Responsive classes: Row on mobile, Column on Desktop
-  const containerClass = "w-full h-16 md:w-20 md:h-full bg-slate-900 border-t md:border-t-0 md:border-r border-slate-800 flex md:flex-col flex-row items-center justify-around md:justify-start md:py-6 z-20 relative shrink-0";
+  // Responsive classes: Glassmorphism base
+  const containerClass = "w-full h-16 md:w-20 md:h-full bg-black/40 backdrop-blur-md border-t md:border-t-0 md:border-r border-white/10 flex md:flex-col flex-row items-center justify-around md:justify-start md:py-6 z-20 relative shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.5)]";
   
   const navItemClass = (view: ViewState) => 
-    `p-3 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
+    `p-3 rounded-xl cursor-pointer transition-all duration-300 flex items-center justify-center relative group ${
       currentView === view 
-        ? 'bg-indigo-550 text-white shadow-lg shadow-indigo-500/30' 
-        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+        ? 'text-cyan-400 bg-cyan-950/30 shadow-[0_0_15px_rgba(6,182,212,0.2)] border border-cyan-500/30' 
+        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
     }`;
 
   const handleExport = () => {
@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
         if (Array.isArray(json)) {
           if (window.confirm('This will overwrite your current library. Continue?')) {
             json.forEach(t => storageService.save(t));
-            window.location.reload(); // Reload to refresh state across app
+            window.location.reload();
           }
         } else {
           alert('Invalid file format.');
@@ -62,21 +62,22 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
 
   return (
     <div className={containerClass}>
-      {/* Logo - Hidden on mobile to save space */}
-      <div className="hidden md:block mb-8">
-        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+      {/* Logo - Holographic Gradient */}
+      <div className="hidden md:block mb-8 group">
+        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.4)] group-hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] transition-all duration-500">
           <Box className="text-white w-6 h-6" />
         </div>
       </div>
 
       {/* Navigation Items */}
-      <div className="flex-1 w-full md:px-3 flex md:flex-col flex-row items-center justify-evenly md:justify-start md:gap-2">
+      <div className="flex-1 w-full md:px-3 flex md:flex-col flex-row items-center justify-evenly md:justify-start md:gap-4">
         <div 
           className={navItemClass('library')} 
           onClick={() => onChangeView('library')}
           title="Prompt Library"
         >
           <Layers size={24} />
+          {currentView === 'library' && <div className="absolute inset-0 rounded-xl bg-cyan-400/10 animate-pulse-slow"></div>}
         </div>
         
         <div 
@@ -85,6 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
           title="Create Prompt"
         >
           <PlusCircle size={24} />
+          {currentView === 'editor' && <div className="absolute inset-0 rounded-xl bg-cyan-400/10 animate-pulse-slow"></div>}
         </div>
 
         <div 
@@ -93,13 +95,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
           title="Run Prompt"
         >
           <PlayCircle size={24} />
+          {currentView === 'execution' && <div className="absolute inset-0 rounded-xl bg-cyan-400/10 animate-pulse-slow"></div>}
         </div>
         
-        {/* Mobile Settings Trigger (Shown in flow on mobile) */}
+        {/* Mobile Settings Trigger */}
         <div className="md:hidden">
              <div 
               onClick={() => setShowSettings(!showSettings)}
-              className={`p-3 rounded-lg cursor-pointer transition-colors ${showSettings ? 'text-indigo-400' : 'text-slate-600'}`}
+              className={`p-3 rounded-lg cursor-pointer transition-colors ${showSettings ? 'text-cyan-400' : 'text-zinc-500'}`}
             >
               <Settings size={24} />
             </div>
@@ -110,29 +113,29 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
       <div className="hidden md:block mb-4 relative">
         <div 
           onClick={() => setShowSettings(!showSettings)}
-          className={`p-2 rounded-lg cursor-pointer transition-colors ${showSettings ? 'text-indigo-400 bg-slate-800' : 'text-slate-600 hover:text-slate-400'}`}
+          className={`p-2 rounded-lg cursor-pointer transition-all duration-300 ${showSettings ? 'text-cyan-400 bg-white/10 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           <Settings size={20} />
         </div>
       </div>
       
-      {/* Settings Popover - Responsive Position */}
+      {/* Settings Popover - Glass Style */}
       {showSettings && (
-          <div className="absolute bottom-16 right-4 md:bottom-0 md:left-14 md:right-auto w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95">
-            <div className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800 mb-1">
+          <div className="absolute bottom-16 right-4 md:bottom-0 md:left-16 md:right-auto w-52 bg-[#0a0a0c]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)] p-2 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95">
+            <div className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest border-b border-white/5 mb-1 font-mono">
               Data Management
             </div>
             <button 
               onClick={handleExport}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors text-left"
+              className="flex items-center gap-3 w-full px-3 py-2 text-sm text-zinc-400 hover:bg-cyan-500/10 hover:text-cyan-400 rounded-lg transition-colors text-left group"
             >
-              <Download size={14} /> Export JSON
+              <Download size={14} className="group-hover:animate-bounce" /> Export JSON
             </button>
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors text-left"
+              className="flex items-center gap-3 w-full px-3 py-2 text-sm text-zinc-400 hover:bg-cyan-500/10 hover:text-cyan-400 rounded-lg transition-colors text-left group"
             >
-              <Upload size={14} /> Import JSON
+              <Upload size={14} className="group-hover:animate-bounce" /> Import JSON
             </button>
             <input 
               type="file" 
@@ -141,10 +144,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
               className="hidden" 
               accept=".json"
             />
-            <div className="mt-1 pt-2 border-t border-slate-800 px-3 py-1">
-              <span className="text-[10px] text-slate-600 flex items-center gap-1">
+            <div className="mt-1 pt-2 border-t border-white/5 px-3 py-1 flex justify-between items-center">
+              <span className="text-[10px] text-zinc-600 flex items-center gap-1 font-mono">
                 <FileJson size={10} /> v1.0.0
               </span>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
             </div>
           </div>
         )}

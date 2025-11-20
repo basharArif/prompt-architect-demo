@@ -49,7 +49,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col-reverse md:flex-row w-full h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex flex-col-reverse md:flex-row w-full h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-cyan-500/30 selection:text-cyan-100 overflow-hidden">
       <Sidebar 
         currentView={currentView} 
         onChangeView={(view) => {
@@ -58,7 +58,7 @@ const App: React.FC = () => {
         }} 
       />
       
-      <main className="flex-1 overflow-hidden relative h-full">
+      <main className="flex-1 overflow-hidden relative h-full bg-black/50 backdrop-blur-sm">
         {currentView === 'library' && (
           <LibraryView 
             onSelectPrompt={handleSelectPrompt}
