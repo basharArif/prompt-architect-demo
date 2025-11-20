@@ -3,24 +3,43 @@ import { ExecutionResult, ModelMode } from "../types";
 
 const EMBEDDING_MODEL = 'text-embedding-004';
 
-// SRS 7.1: Token Bucket Implementation
+// SRS 7.1: Token Bucket Implementation with Local Persistence
 class TokenBucket {
   private tokens: number;
   private lastRefill: number;
   private readonly maxTokens: number;
   private readonly refillRatePerSecond: number;
+  private readonly storageKey: string;
 
-  constructor(maxTokens: number, refillRatePerSecond: number) {
+  constructor(maxTokens: number, refillRatePerSecond: number, storageKey: string) {
     this.maxTokens = maxTokens;
     this.refillRatePerSecond = refillRatePerSecond;
-    this.tokens = maxTokens;
-    this.lastRefill = Date.now();
+    this.storageKey = `pa_ratelimit_${storageKey}`;
+
+    // Load state
+    const saved = localStorage.getItem(this.storageKey);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      this.tokens = parsed.tokens;
+      this.lastRefill = parsed.lastRefill;
+    } else {
+      this.tokens = maxTokens;
+      this.lastRefill = Date.now();
+    }
+  }
+
+  private saveState() {
+    localStorage.setItem(this.storageKey, JSON.stringify({
+      tokens: this.tokens,
+      lastRefill: this.lastRefill
+    }));
   }
 
   async consume(cost: number = 1): Promise<boolean> {
     this.refill();
     if (this.tokens >= cost) {
       this.tokens -= cost;
+      this.saveState();
       return true;
     }
     return false;
@@ -32,14 +51,17 @@ class TokenBucket {
     if (elapsed > 0) {
       this.tokens = Math.min(this.maxTokens, this.tokens + (elapsed * this.refillRatePerSecond));
       this.lastRefill = now;
+      this.saveState();
     }
   }
 }
 
 // Rate Limiters for Free Tier (Approximations)
 // RPM = Requests Per Minute. 
-const flashLimiter = new TokenBucket(15, 15 / 60); // ~15 RPM
-const proLimiter = new TokenBucket(2, 2 / 60); // ~2 RPM
+// Flash: 15 RPM
+const flashLimiter = new TokenBucket(15, 15 / 60, 'flash'); 
+// Pro: 2 RPM
+const proLimiter = new TokenBucket(2, 2 / 60, 'pro'); 
 
 const getClient = () => {
     if (!process.env.API_KEY) {
@@ -92,7 +114,10 @@ export const generateEmbedding = async (text: string): Promise<number[] | undefi
       model: EMBEDDING_MODEL,
       contents: text,
     }));
-    return response.embedding?.values;
+    // Handle potential type mismatch: TS thinks embedding is missing and suggests embeddings.
+    // We check both to be safe at runtime and satisfy TS by casting to any for the property access.
+    const embedResult = (response as any).embedding || (response as any).embeddings?.[0];
+    return embedResult?.values;
   } catch (e) {
     console.error("Embedding failed:", e);
     return undefined;

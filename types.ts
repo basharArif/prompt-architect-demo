@@ -1,6 +1,6 @@
 export interface Variable {
   name: string;
-  type: 'text' | 'selection' | 'file';
+  type: 'text' | 'selection' | 'file' | 'stdin';
   defaultValue?: string;
 }
 

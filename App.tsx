@@ -3,22 +3,39 @@ import Sidebar from './components/Sidebar';
 import LibraryView from './components/LibraryView';
 import EditorView from './components/EditorView';
 import ExecutionView from './components/ExecutionView';
+import CommandPalette from './components/CommandPalette';
 import { ViewState, PromptTemplate } from './types';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('library');
   const [selectedPrompt, setSelectedPrompt] = useState<PromptTemplate | null>(null);
   const [editingPrompt, setEditingPrompt] = useState<PromptTemplate | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Navigation Handlers
   const handleSelectPrompt = (prompt: PromptTemplate) => {
     setSelectedPrompt(prompt);
     setCurrentView('execution');
+    setIsCommandPaletteOpen(false);
   };
 
   const handleEditPrompt = (prompt: PromptTemplate) => {
     setEditingPrompt(prompt);
     setCurrentView('editor');
+    setIsCommandPaletteOpen(false);
   };
 
   const handleCreatePrompt = () => {
@@ -32,7 +49,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex w-full h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30">
+    <div className="flex flex-col-reverse md:flex-row w-full h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 overflow-hidden">
       <Sidebar 
         currentView={currentView} 
         onChangeView={(view) => {
@@ -41,7 +58,7 @@ const App: React.FC = () => {
         }} 
       />
       
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 overflow-hidden relative h-full">
         {currentView === 'library' && (
           <LibraryView 
             onSelectPrompt={handleSelectPrompt}
@@ -65,6 +82,12 @@ const App: React.FC = () => {
           />
         )}
       </main>
+
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen} 
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelect={handleSelectPrompt}
+      />
     </div>
   );
 };
